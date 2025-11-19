@@ -12,79 +12,82 @@ This document presents the complete Entity-Relationship diagram for the Employee
 
 ### **1. Employee (Enhanced with Photo Support)**
 
-- **ssn** (Primary Key) - TEXT
-- **name** - TEXT (NOT NULL)
-- **birth_date** - TEXT (NOT NULL)
-- **address** - TEXT (NOT NULL)
-- **sex** - TEXT (NOT NULL, CHECK: 'M' or 'F')
-- **salary** - REAL (NOT NULL)
-- **dept_no** - INTEGER (Foreign Key → Department)
-- **supervisor_ssn** - TEXT (Foreign Key → Employee)
-- **🆕 profile_photo** - BLOB (Employee profile image data)
-- **🆕 photo_upload_date** - TEXT (Timestamp of photo upload)
-- **🆕 photo_file_size** - INTEGER (File size in bytes)
-- **🆕 photo_mime_type** - TEXT (Image MIME type: image/jpeg, image/png)
+| Attribute                | Data Type | Constraints              | Description                             |
+| ------------------------ | --------- | ------------------------ | --------------------------------------- |
+| **ssn**                  | TEXT      | PRIMARY KEY              | Employee Social Security Number         |
+| **name**                 | TEXT      | NOT NULL                 | Employee full name                      |
+| **birth_date**           | TEXT      | NOT NULL                 | Date of birth (YYYY-MM-DD)              |
+| **address**              | TEXT      | NOT NULL                 | Employee residential address            |
+| **sex**                  | TEXT      | NOT NULL, CHECK('M','F') | Employee gender                         |
+| **salary**               | REAL      | NOT NULL                 | Annual salary amount                    |
+| **dept_no**              | INTEGER   | FOREIGN KEY → Department | Department assignment                   |
+| **supervisor_ssn**       | TEXT      | FOREIGN KEY → Employee   | Reporting supervisor                    |
+| **🆕 profile_photo**     | BLOB      | -                        | Employee profile image data             |
+| **🆕 photo_upload_date** | TEXT      | -                        | Timestamp of photo upload               |
+| **🆕 photo_file_size**   | INTEGER   | -                        | File size in bytes                      |
+| **🆕 photo_mime_type**   | TEXT      | -                        | Image MIME type (image/jpeg, image/png) |
 
 ### **2. Department**
 
-- **dept_no** (Primary Key) - INTEGER
-- **dept_name** - TEXT (NOT NULL)
-- **location** - TEXT (NOT NULL)
-- **manager_ssn** - TEXT (Foreign Key → Employee)
-- **start_date** - TEXT
+| Attribute       | Data Type | Constraints            | Description                   |
+| --------------- | --------- | ---------------------- | ----------------------------- |
+| **dept_no**     | INTEGER   | PRIMARY KEY            | Department number identifier  |
+| **dept_name**   | TEXT      | NOT NULL               | Department name               |
+| **location**    | TEXT      | NOT NULL               | Department physical location  |
+| **manager_ssn** | TEXT      | FOREIGN KEY → Employee | Department manager            |
+| **start_date**  | TEXT      | -                      | Department establishment date |
 
 ### **3. Project**
 
-- **proj_no** (Primary Key) - INTEGER
-- **proj_name** - TEXT (NOT NULL)
-- **location** - TEXT (NOT NULL)
-- **dept_no** - INTEGER (Foreign Key → Department)
+| Attribute     | Data Type | Constraints              | Description               |
+| ------------- | --------- | ------------------------ | ------------------------- |
+| **proj_no**   | INTEGER   | PRIMARY KEY              | Project number identifier |
+| **proj_name** | TEXT      | NOT NULL                 | Project name              |
+| **location**  | TEXT      | NOT NULL                 | Project location          |
+| **dept_no**   | INTEGER   | FOREIGN KEY → Department | Controlling department    |
 
 ### **4. Works_On (Relationship Entity)**
 
-- **ssn** (Primary Key, Foreign Key → Employee) - TEXT
-- **proj_no** (Primary Key, Foreign Key → Project) - INTEGER
-- **hours** - REAL (NOT NULL)
+| Attribute   | Data Type | Constraints                         | Description             |
+| ----------- | --------- | ----------------------------------- | ----------------------- |
+| **ssn**     | TEXT      | PRIMARY KEY, FOREIGN KEY → Employee | Employee identifier     |
+| **proj_no** | INTEGER   | PRIMARY KEY, FOREIGN KEY → Project  | Project identifier      |
+| **hours**   | REAL      | NOT NULL                            | Hours worked on project |
 
 ### **5. Dependent**
 
-- **id** (Primary Key) - INTEGER (AUTOINCREMENT)
-- **ssn** (Foreign Key → Employee) - TEXT
-- **dep_name** - TEXT (NOT NULL)
-- **sex** - TEXT (NOT NULL, CHECK: 'M' or 'F')
-- **birth_date** - TEXT (NOT NULL)
-- **relationship** - TEXT (NOT NULL)
+| Attribute        | Data Type | Constraints                | Description                 |
+| ---------------- | --------- | -------------------------- | --------------------------- |
+| **id**           | INTEGER   | PRIMARY KEY, AUTOINCREMENT | Unique dependent identifier |
+| **ssn**          | TEXT      | FOREIGN KEY → Employee     | Employee identifier         |
+| **dep_name**     | TEXT      | NOT NULL                   | Dependent full name         |
+| **sex**          | TEXT      | NOT NULL, CHECK('M','F')   | Dependent gender            |
+| **birth_date**   | TEXT      | NOT NULL                   | Dependent date of birth     |
+| **relationship** | TEXT      | NOT NULL                   | Relationship to employee    |
 
 ---
 
 ## **🔹 Relationships**
 
-### **1. Employee ↔ Department**
+| Relationship      | From Entity | To Entity  | Cardinality  | Foreign Key                            | Description                    |
+| ----------------- | ----------- | ---------- | ------------ | -------------------------------------- | ------------------------------ |
+| **WORKS_IN**      | Employee    | Department | Many-to-One  | Employee.dept_no → Department.dept_no  | Employees work in departments  |
+| **MANAGES**       | Department  | Employee   | One-to-One   | Department.manager_ssn → Employee.ssn  | Department managed by employee |
+| **SUPERVISES**    | Employee    | Employee   | One-to-Many  | Employee.supervisor_ssn → Employee.ssn | Employee supervision hierarchy |
+| **WORKS_ON**      | Employee    | Project    | Many-to-Many | Works_On table                         | Employees work on projects     |
+| **CONTROLS**      | Department  | Project    | One-to-Many  | Project.dept_no → Department.dept_no   | Department controls projects   |
+| **HAS_DEPENDENT** | Employee    | Dependent  | One-to-Many  | Dependent.ssn → Employee.ssn           | Employee has dependents        |
 
-- **WORKS_IN**: Employee.dept_no → Department.dept_no
-- **MANAGES**: Department.manager_ssn → Employee.ssn
-- **Cardinality**: Many-to-One (Many employees work in one department)
+### **Detailed Relationship Analysis**
 
-### **2. Employee ↔ Employee (Supervision)**
-
-- **SUPERVISES**: Employee.supervisor_ssn → Employee.ssn
-- **Cardinality**: Many-to-One (Many employees report to one supervisor)
-
-### **3. Employee ↔ Project (Works_On)**
-
-- **WORKS_ON**: Many-to-Many relationship
-- **Participation**: Employee can work on multiple projects, Project can have multiple employees
-- **Attributes**: hours (time spent on project)
-
-### **4. Project ↔ Department**
-
-- **CONTROLS**: Project.dept_no → Department.dept_no
-- **Cardinality**: Many-to-One (Many projects controlled by one department)
-
-### **5. Employee ↔ Dependent**
-
-- **HAS_DEPENDENT**: Dependent.ssn → Employee.ssn
-- **Cardinality**: One-to-Many (One employee can have multiple dependents)
+| Relationship Name       | Primary Entity | Secondary Entity | Relationship Type | Attributes     | Business Rules                          |
+| ----------------------- | -------------- | ---------------- | ----------------- | -------------- | --------------------------------------- |
+| **Employee-Department** | Employee       | Department       | Many-to-One       | dept_no        | Each employee belongs to one department |
+| **Department-Manager**  | Department     | Employee         | One-to-One        | manager_ssn    | Each department has one manager         |
+| **Employee-Supervisor** | Employee       | Employee         | Many-to-One       | supervisor_ssn | Employees report to one supervisor      |
+| **Employee-Project**    | Employee       | Project          | Many-to-Many      | hours          | Employees can work on multiple projects |
+| **Department-Project**  | Department     | Project          | One-to-Many       | dept_no        | Department controls multiple projects   |
+| **Employee-Dependent**  | Employee       | Dependent        | One-to-Many       | ssn            | Employee can have multiple dependents   |
 
 ---
 
@@ -154,55 +157,81 @@ erDiagram
 
 ## **🔹 Database Normalization - BCNF Compliance**
 
-### **Enhanced Schema Analysis**
+### **Functional Dependencies Analysis**
 
-The updated database schema maintains **Boyce-Codd Normal Form (BCNF)** compliance:
+| Entity         | Primary Key    | Functional Dependencies                                                                                                                     | BCNF Status  |
+| -------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| **Employee**   | ssn            | ssn → {name, birth_date, address, sex, salary, dept_no, supervisor_ssn, profile_photo, photo_upload_date, photo_file_size, photo_mime_type} | ✅ Compliant |
+| **Department** | dept_no        | dept_no → {dept_name, location, manager_ssn, start_date}                                                                                    | ✅ Compliant |
+| **Project**    | proj_no        | proj_no → {proj_name, location, dept_no}                                                                                                    | ✅ Compliant |
+| **Works_On**   | {ssn, proj_no} | {ssn, proj_no} → hours                                                                                                                      | ✅ Compliant |
+| **Dependent**  | id             | id → {ssn, dep_name, sex, birth_date, relationship}                                                                                         | ✅ Compliant |
 
-#### **Employee Table (Enhanced)**
+### **Photo Extension Fields Analysis**
 
-- **Primary Key**: ssn
-- **Functional Dependencies**:
-  - ssn → name, birth_date, address, sex, salary, dept_no, supervisor_ssn
-  - **🆕 ssn → profile_photo, photo_upload_date, photo_file_size, photo_mime_type**
-- **BCNF Compliance**: ✅ All non-key attributes are fully functionally dependent on the primary key
+| Field                 | Purpose                  | Data Type | Storage Method  | Security Features      |
+| --------------------- | ------------------------ | --------- | --------------- | ---------------------- |
+| **profile_photo**     | Multimodal image storage | BLOB      | SQLite database | File type validation   |
+| **photo_upload_date** | Audit trail              | TEXT      | ISO timestamp   | Auto-generated         |
+| **photo_file_size**   | Storage optimization     | INTEGER   | Bytes           | 5MB limit enforced     |
+| **photo_mime_type**   | Content serving          | TEXT      | MIME string     | Restricted to image/\* |
 
-#### **Photo Extension Fields**
+### **Constraint Analysis**
 
-- **profile_photo**: BLOB data for multimodal storage
-- **photo_upload_date**: Timestamp for audit trail
-- **photo_file_size**: Storage optimization metadata
-- **photo_mime_type**: Content type for proper serving
-
-### **Key Constraints**
-
-- **CHECK Constraints**: sex IN ('M', 'F') for Employee and Dependent
-- **Foreign Key Constraints**: Maintain referential integrity
-- **NOT NULL Constraints**: Ensure data completeness for critical fields
+| Constraint Type   | Table      | Column                                  | Rule                  | Purpose                     |
+| ----------------- | ---------- | --------------------------------------- | --------------------- | --------------------------- |
+| **PRIMARY KEY**   | Employee   | ssn                                     | UNIQUE, NOT NULL      | Entity identification       |
+| **PRIMARY KEY**   | Department | dept_no                                 | UNIQUE, NOT NULL      | Entity identification       |
+| **PRIMARY KEY**   | Project    | proj_no                                 | UNIQUE, NOT NULL      | Entity identification       |
+| **COMPOSITE KEY** | Works_On   | {ssn, proj_no}                          | UNIQUE combination    | Relationship identification |
+| **PRIMARY KEY**   | Dependent  | id                                      | AUTO INCREMENT        | Entity identification       |
+| **FOREIGN KEY**   | Employee   | dept_no                                 | → Department(dept_no) | Referential integrity       |
+| **FOREIGN KEY**   | Employee   | supervisor_ssn                          | → Employee(ssn)       | Referential integrity       |
+| **FOREIGN KEY**   | Department | manager_ssn                             | → Employee(ssn)       | Referential integrity       |
+| **FOREIGN KEY**   | Project    | dept_no                                 | → Department(dept_no) | Referential integrity       |
+| **FOREIGN KEY**   | Works_On   | ssn                                     | → Employee(ssn)       | Referential integrity       |
+| **FOREIGN KEY**   | Works_On   | proj_no                                 | → Project(proj_no)    | Referential integrity       |
+| **FOREIGN KEY**   | Dependent  | ssn                                     | → Employee(ssn)       | Referential integrity       |
+| **CHECK**         | Employee   | sex                                     | IN ('M', 'F')         | Data validity               |
+| **CHECK**         | Dependent  | sex                                     | IN ('M', 'F')         | Data validity               |
+| **NOT NULL**      | Employee   | name, birth_date, address, sex, salary  | Mandatory fields      | Data completeness           |
+| **NOT NULL**      | Department | dept_name, location                     | Mandatory fields      | Data completeness           |
+| **NOT NULL**      | Project    | proj_name, location                     | Mandatory fields      | Data completeness           |
+| **NOT NULL**      | Works_On   | hours                                   | Mandatory fields      | Data completeness           |
+| **NOT NULL**      | Dependent  | dep_name, sex, birth_date, relationship | Mandatory fields      | Data completeness           |
 
 ---
 
 ## **🔹 Photo Extension Specifications (SRS Document 2)**
 
-### **Multimodal Data Handling**
+### **Multimodal Data Requirements**
 
-- **Supported Formats**: JPEG, PNG
-- **Storage Method**: BLOB in SQLite database
-- **Security**: File type validation, size limits (5MB)
-- **Metadata**: Complete audit trail with timestamps and file information
+| Specification         | Requirement           | Implementation          | Security Feature          |
+| --------------------- | --------------------- | ----------------------- | ------------------------- |
+| **File Formats**      | JPEG, PNG             | MIME type validation    | Magic number verification |
+| **File Size**         | Maximum 5MB           | Server-side enforcement | Prevents DoS attacks      |
+| **Storage Method**    | Database BLOB         | SQLite integration      | Transactional consistency |
+| **Metadata Tracking** | Size, type, timestamp | Automatic recording     | Audit trail compliance    |
 
-### **API Integration**
+### **API Endpoint Specifications**
 
-- **GET** `/api/employees/:ssn/photo` - Retrieve photo
-- **POST** `/api/employees/:ssn/photo` - Upload new photo
-- **PUT** `/api/employees/:ssn/photo` - Update existing photo
-- **DELETE** `/api/employees/:ssn/photo` - Remove photo
+| HTTP Method | Endpoint                    | Purpose               | Request Format      | Response Format    | Status Codes       |
+| ----------- | --------------------------- | --------------------- | ------------------- | ------------------ | ------------------ |
+| **GET**     | `/api/employees/:ssn/photo` | Retrieve photo        | URL parameter       | Binary image data  | 200, 404, 500      |
+| **POST**    | `/api/employees/:ssn/photo` | Upload new photo      | multipart/form-data | JSON success/error | 201, 400, 404, 500 |
+| **PUT**     | `/api/employees/:ssn/photo` | Update existing photo | multipart/form-data | JSON success/error | 200, 400, 404, 500 |
+| **DELETE**  | `/api/employees/:ssn/photo` | Remove photo          | URL parameter       | JSON success/error | 200, 404, 500      |
 
-### **Frontend Features**
+### **Frontend Component Features**
 
-- Photo thumbnails in employee listing
-- Upload modal with preview functionality
-- File validation and progress indicators
-- Responsive design with Tailwind CSS
+| Component               | Feature             | Description                | User Experience            |
+| ----------------------- | ------------------- | -------------------------- | -------------------------- |
+| **Employee Table**      | Photo thumbnails    | 48px circular images       | Visual identification      |
+| **Photo Modal**         | Upload interface    | Drag & drop + file browser | Intuitive interaction      |
+| **Preview System**      | Real-time preview   | Before upload confirmation | Error prevention           |
+| **Progress Indicators** | Loading states      | Upload progress feedback   | User awareness             |
+| **Error Handling**      | Validation messages | Clear error communication  | User guidance              |
+| **Responsive Design**   | Mobile support      | Tailwind CSS framework     | Cross-device compatibility |
 
 ---
 
@@ -210,19 +239,29 @@ The updated database schema maintains **Boyce-Codd Normal Form (BCNF)** complian
 
 ### **Database Migration Strategy**
 
-```sql
--- Add photo columns to existing Employee table
-ALTER TABLE Employee ADD COLUMN profile_photo BLOB;
-ALTER TABLE Employee ADD COLUMN photo_upload_date TEXT;
-ALTER TABLE Employee ADD COLUMN photo_file_size INTEGER;
-ALTER TABLE Employee ADD COLUMN photo_mime_type TEXT;
-```
+| Migration Step      | SQL Command                                                | Purpose                 | Impact                 |
+| ------------------- | ---------------------------------------------------------- | ----------------------- | ---------------------- |
+| **Add Photo BLOB**  | `ALTER TABLE Employee ADD COLUMN profile_photo BLOB;`      | Store image binary data | Multimodal support     |
+| **Add Upload Date** | `ALTER TABLE Employee ADD COLUMN photo_upload_date TEXT;`  | Track modification time | Audit compliance       |
+| **Add File Size**   | `ALTER TABLE Employee ADD COLUMN photo_file_size INTEGER;` | Storage optimization    | Performance monitoring |
+| **Add MIME Type**   | `ALTER TABLE Employee ADD COLUMN photo_mime_type TEXT;`    | Content type handling   | Proper HTTP serving    |
 
 ### **Sample Data Integration**
 
-- **Automatic Photo Seeding**: Photos loaded from `/backend/photos/` directory
-- **Metadata Population**: File size, MIME type, and upload timestamp automatically recorded
-- **Employee Coverage**: All 5 sample employees include profile photos
+| Component               | Implementation                        | Coverage                                                   | Files Included        |
+| ----------------------- | ------------------------------------- | ---------------------------------------------------------- | --------------------- |
+| **Automatic Seeding**   | Photo loading from `/backend/photos/` | All sample employees                                       | 5 JPEG images         |
+| **Metadata Population** | Auto-generated during seeding         | File size, MIME type, timestamp                            | Complete audit trail  |
+| **Employee Coverage**   | 100% photo assignment                 | john.jpeg, jane.jpeg, mike.jpeg, sarah.jpeg, divyansh.jpeg | Production-ready data |
+
+### **System Architecture Summary**
+
+| Layer           | Technology                    | Responsibility   | Photo Integration                   |
+| --------------- | ----------------------------- | ---------------- | ----------------------------------- |
+| **Database**    | SQLite3 with BLOB support     | Data persistence | BLOB storage for images             |
+| **Backend API** | Node.js + Express + Multer    | Business logic   | RESTful photo endpoints             |
+| **Frontend**    | React + TypeScript + Tailwind | User interface   | Photo upload/display components     |
+| **Security**    | File validation + Size limits | Data protection  | MIME type + magic number validation |
 
 ---
 
